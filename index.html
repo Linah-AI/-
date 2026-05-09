@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UQU AI - Comprehensive System Design Presentation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    
+    <style>
+        :root {
+            --uqu-green: #005a32;
+            --uqu-gold: #b59c49;
+            --uqu-red: #8b0000; 
+            --bg-canvas: #f8fafc;
+            --card-bg: #ffffff;
+            --text-dark: #1e293b;
+        }
+
+        * { box-sizing: border-box; }
+        body, html {
+            margin: 0; padding: 0; font-family: 'Inter', sans-serif;
+            background: var(--bg-canvas);
+            background-image: radial-gradient(var(--uqu-gold) 0.5px, transparent 0.5px), radial-gradient(var(--uqu-gold) 0.5px, var(--bg-canvas) 0.5px);
+            background-size: 20px 20px; background-position: 0 0, 10px 10px; opacity: 0.95;
+            color: var(--text-dark); height: 100vh; width: 100vw; overflow: hidden;
+        }
+
+        .slide-wrapper { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
+        .slide {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; visibility: hidden; transform: scale(0.95); transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .slide.active { opacity: 1; visibility: visible; transform: scale(1); }
+
+        .content-box {
+            background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(10px);
+            width: 95%; max-width: 1400px; height: 90vh;
+            padding: 40px 50px; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+            display: flex; flex-direction: column; position: relative; border: 1px solid rgba(181, 156, 73, 0.3);
+        }
+
+        .content-box::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 8px;
+            background: linear-gradient(90deg, var(--uqu-green), var(--uqu-gold)); border-radius: 20px 20px 0 0;
+        }
+
+        .header-logo { position: absolute; top: 15px; right: 40px; text-align: right; border-right: 4px solid var(--uqu-gold); padding-right: 15px; }
+        .header-logo h4 { margin: 0; color: var(--uqu-green); font-size: 0.9rem; font-family: 'Poppins'; }
+        
+        .slide-title { font-family: 'Poppins'; font-size: 2rem; color: var(--uqu-green); margin-bottom: 20px; font-weight: 800; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; display: flex; align-items: center; gap: 15px; }
+        .slide-title i { color: var(--uqu-gold); animation: pulse 2s infinite; }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; flex-grow: 1; align-items: stretch; min-height: 0; }
+        
+        .info-card {
+            background: var(--card-bg); padding: 20px 25px; border-radius: 15px;
+            border: 1px solid #e2e8f0; transition: all 0.3s ease; 
+            display: flex; flex-direction: column; overflow-y: auto; /* Allows scrolling if text is too long */
+        }
+        .info-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,90,50,0.08); border-color: var(--uqu-green); }
+        .info-card h5 { margin: 0 0 15px 0; color: var(--uqu-green); font-size: 1.15rem; font-weight: 800; display: flex; align-items: center; gap: 10px; position: sticky; top: 0; background: var(--card-bg); padding-bottom: 5px; z-index: 2; border-bottom: 1px dashed #cbd5e1;}
+        .info-card h5 i { color: var(--uqu-gold); }
+
+        ul { padding-left: 20px; margin-top: 5px; }
+        p, li { font-size: 1rem; line-height: 1.6; color: #334155; margin-bottom: 12px; }
+        
+        .highlight { color: var(--uqu-red); font-weight: 800; background: rgba(139,0,0,0.05); padding: 2px 5px; border-radius: 4px;}
+        strong { color: var(--uqu-green); font-weight: 800; }
+
+        .nav-controls { position: fixed; bottom: 25px; right: 40px; display: flex; gap: 15px; z-index: 100; }
+        .btn { background: var(--uqu-green); color: white; border: none; width: 50px; height: 50px; border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.3s; box-shadow: 0 6px 15px rgba(0,0,0,0.2); font-size: 1.1rem; }
+        .btn:hover { background: var(--uqu-gold); transform: scale(1.1); }
+
+        .progress-bar { position: fixed; bottom: 0; left: 0; height: 6px; background: linear-gradient(90deg, var(--uqu-gold), var(--uqu-green)); width: 0%; transition: 0.3s; }
+        .slide-counter { position: fixed; bottom: 25px; left: 40px; color: var(--uqu-green); font-weight: bold; font-size: 1.1rem; background: rgba(255,255,255,0.9); padding: 5px 15px; border-radius: 20px; border: 1px solid #e2e8f0;}
+
+        .report-tag { background: var(--uqu-green); color: white; padding: 5px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: bold; margin-bottom: 10px; display: inline-block; letter-spacing: 1px; }
+
+        /* Custom Scrollbar for cards */
+        .info-card::-webkit-scrollbar { width: 6px; }
+        .info-card::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        .info-card::-webkit-scrollbar-thumb { background: var(--uqu-gold); border-radius: 10px; }
+
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <div class="progress-bar" id="progressLine"></div>
+    <div class="slide-counter" id="slideNum"></div>
+
+    <div class="nav-controls">
+        <button class="btn" onclick="moveSlide(-1)"><i class="fas fa-arrow-left"></i></button>
+        <button class="btn" onclick="window.print()"><i class="fas fa-print"></i></button>
+        <button class="btn" onclick="moveSlide(1)"><i class="fas fa-arrow-right"></i></button>
+    </div>
+
+    <div class="slide-wrapper" id="wrapper">
+        
+        <div class="slide active">
+            <div class="content-box animate__animated animate__zoomIn" style="text-align: center; justify-content: center; background: #fff;">
+                <div class="header-logo">
+                    <h4>Umm Al-Qura University</h4>
+                    <span style="font-size: 0.7rem; color: var(--uqu-gold);">AI System Design | A13104</span>
+                </div>
+                <h1 class="animate__animated animate__fadeInDown animate__delay-1s" style="font-size: 3.5rem; color: var(--uqu-green); font-family: 'Poppins'; margin: 0; line-height: 1.2;">Classifying Air Pollution <br><span style="color: var(--uqu-gold);">Risk Levels</span> in Makkah</h1>
+                <p class="animate__animated animate__fadeIn animate__delay-2s" style="font-size: 1.2rem; max-width: 800px; margin: 25px auto; color: #475569;">A Comprehensive <strong>Explainable AI (XAI)</strong> framework to support decision-making and improve <span class="highlight">urban quality of life</span>.</p>
+                <div class="animate__animated animate__fadeInUp animate__delay-2s" style="display: flex; gap: 15px; justify-content: center; margin-top: 20px; flex-wrap: wrap;">
+                    <span class="info-card" style="padding:10px 20px; font-weight:800; font-size:0.9rem;">Salam Alghamdi (Leader)</span>
+                    <span class="info-card" style="padding:10px 20px; font-weight:800; font-size:0.9rem;">Danah Alharbi</span>
+                    <span class="info-card" style="padding:10px 20px; font-weight:800; font-size:0.9rem;">Linah Alsayed</span>
+                    <span class="info-card" style="padding:10px 20px; font-weight:800; font-size:0.9rem;">Khadija Mirza</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-box">
+                <span class="report-tag">REPORT PHASE 1 | SECTION 1</span>
+                <h2 class="slide-title"><i class="fas fa-exclamation-triangle"></i> Problem Statement & Context</h2>
+                <div class="grid-2">
+                    <div class="info-card">
+                        <h5><i class="fas fa-city"></i> The Context & Challenge</h5>
+                        <ul>
+                            <li>With urban expansion, environmental pollution levels have increased significantly.</li>
+                            <li>Air pollution has become one of the most significant challenges affecting <span class="highlight">quality of life and public health</span>.</li>
+                            <li>Data collected from Makkah indicates varying percentages of households exposed to different pollution types.</li>
+                        </ul>
+                    </div>
+                    <div class="info-card" style="border-left: 4px solid var(--uqu-red);">
+                        <h5><i class="fas fa-search" style="color:var(--uqu-red);"></i> The Gap & Solution</h5>
+                        <ul>
+                            <li>The problem lies in the <strong style="color:var(--uqu-red);">absence of a system</strong> that analyzes this data, classifies risk levels, and ranks types by impact.</li>
+                            <li>This makes it difficult for authorities to determine <span class="highlight">priority areas</span> for intervention.</li>
+                            <li><strong>Goal:</strong> Develop a system to classify risks, support decision-making, and identify priority actions.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-box">
+                <span class="report-tag">REPORT PHASE 1 | SECTIONS 2 & 3</span>
+                <h2 class="slide-title"><i class="fas fa-tasks"></i> Objectives & Full Requirements</h2>
+                <div class="grid-2">
+                    <div class="info-card">
+                        <h5><i class="fas fa-bullseye"></i> 4 Main Objectives</h5>
+                        <ol>
+                            <li><span class="highlight">Classify</span> air pollution types based on risk level.</li>
+                            <li><span class="highlight">Rank</span> pollution types according to priority.</li>
+                            <li><span class="highlight">Provide</span> data-driven recommendations for authorities.</li>
+                            <li><strong>Contribute</strong> to improving quality of life and public health.</li>
+                        </ol>
+                    </div>
+                    <div class="info-card">
+                        <h5><i class="fas fa-clipboard-list"></i> System Requirements</h5>
+                        <p><strong>Functional:</strong> Input percentage data, Preprocessing/cleaning, Risk classification (Low, Med, High), Ranking pollution, Visualizing results (tables/charts), Providing recommendations.</p>
+                        <p><strong>Non-Functional:</strong> Reliable accuracy, Clear outputs, Ability to update/extend to other cities, Fast processing, Simple/user-friendly design.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-box">
+                <span class="report-tag">REPORT PHASE 1 | SECTION 4</span>
+                <h2 class="slide-title"><i class="fas fa-users"></i> All Target User Groups</h2>
+                <div class="grid-2">
+                    <div class="info-card">
+                        <h5><i class="fas fa-landmark"></i> Government & Health</h5>
+                        <ul>
+                            <li><strong>Gov. Authorities (Min. of Environment / Municipality):</strong> Use system to identify high-risk types, prioritize interventions, and support urban planning.</li>
+                            <li><strong>Public Health Orgs (Min. of Health):</strong> Understand health impact and support awareness/prevention strategies.</li>
+                        </ul>
+                    </div>
+                    <div class="info-card">
+                        <h5><i class="fas fa-microscope"></i> Research & Public</h5>
+                        <ul>
+                            <li><strong>Researchers & Analysts:</strong> Analyze pollution patterns and develop further predictive models.</li>
+                            <li><strong>Residents of Makkah:</strong> Benefit through improved air quality, increased awareness, and better quality of life.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-box">
+                <span class="report-tag">REPORT PHASE 1 | SECTION 5</span>
+                <h2 class="slide-title"><i class="fas fa-chart-bar"></i> All 7 Success Metrics & KPIs</h2>
+                <div class="grid-2">
+                    <div class="info-card">
+                        <h5><i class="fas fa-check-double"></i> Model Performance</h5>
+                        <ul>
+                            <li><strong>Accuracy:</strong> Target <span class="highlight">&ge; 80%</span> for correct classification.</li>
+                            <li><strong>Precision & Recall:</strong> Target <span class="highlight">&ge; 75%</span> for reliable high-risk identification.</li>
+                            <li><strong>F1-Score:</strong> Target <span class="highlight">&ge; 0.75</span> (balanced measure).</li>
+                            <li><strong>Ranking Effectiveness:</strong> Consistency between ranking and actual impact severity.</li>
+                        </ul>
+                    </div>
+                    <div class="info-card">
+                        <h5><i class="fas fa-tachometer-alt"></i> System Usability</h5>
+                        <ul>
+                            <li><strong>Processing Time:</strong> Results generated within a <span class="highlight">few seconds</span>.</li>
+                            <li><strong>Usability & Clarity:</strong> Outputs easily interpretable by non-technical users.</li>
+                            <li><strong>Scalability:</strong> Maintain performance with extended datasets/cities.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-box">
+                <span class="report-tag">REPORT PHASE 1 | SECTION 6.1 & 6.2</span>
+                <h2 class="slide-title"><i class="fas fa-cogs"></i> Technical & Data Feasibility</h2>
+                <div class="grid-2">
+                    <div class="info-card">
+                        <h5><i class="fas fa-laptop-code"></i> Technical Feasibility (6.1)</h5>
+                        <ul>
+                            <li>Relies on established algorithms like <strong>Decision Trees</strong> suitable for structured data.</li>
+                            <li>Tools (Python, pandas, scikit-learn) are open-source.</li>
+                            <li><strong style="color:var(--uqu-red);">Risk:</strong> Limited data points (2021,22,24) insufficient for time-series. Mitigated by cross-sectional focus.</li>
+                        </ul>
+                    </div>
+                    <div class="info-card">
+                        <h5><i class="fas fa-database"></i> Data Feasibility (6.2)</h5>
+                        <ul>
+                            <li>Source: DataSaudi (GASTAT). Covers Dust (13.3%), Smoking (7.6%), Waste (6.6%), Gas (1.7%).</li>
+                            <li><strong style="color:var(--uqu-red);">4 Data Risks:</strong> 1. Limited temporal coverage (Med risk). 2. Absence of granular geographic breakdown (Med risk). 3. Self-reported response bias (Low risk). 4. Annual update cycle (Low risk). All mitigated.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-box">
+                <span class="report-tag">REPORT PHASE 1 | SECTION 6.3 & 6.4</span>
+                <h2 class="slide-title"><i class="fas fa-balance-scale"></i> Ethical Feasibility & Verdict</h2>
+                <div class="grid-2">
+                    <div class="info-card">
+                        <h5><i class="fas fa-shield-alt"></i> Ethical Feasibility (6.3)</h5>
+                        <ul>
+                            <li>Operates exclusively on anonymized data (PDPL compliant, no PII).</li>
+                            <li><strong>Fairness:</strong> Must not stigmatize communities (data is regional, minimizing risk).</li>
+                            <li><strong>Transparency:</strong> Thresholds documented for auditing.</li>
+                            <li><strong>Advisory Nature:</strong> Outputs are advisory (DSS), not formal policy.</li>
+                        </ul>
+                    </div>
+                    <div class="info-card">
+                        <h5><i class="fas fa-gavel"></i> Overall Verdict (6.4)</h5>
+                        <ul>
+                            <li><strong>Technical:</strong> High feasibility (Low risk).</li>
+                            <li><strong>Data:</strong> Moderate feasibility (Medium risk).</li>
+                            <li><strong>Ethical:</strong> High feasibility (Low risk).</li>
+                            <li><strong style="font-size:1.2rem;">Final Verdict:</strong> Feasible within scope with <span class="highlight">Low-Medium</span> combined risk.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-box">
+                <span class="report-tag">REPORT PHASE 1 | SECTIONS 7.1 & 7.2</span>
+                <h2 class="slide-title"><i class="fas fa-handshake"></i> Complete Ethical & Legal Considerations</h2>
+                <div class="grid-2">
+                    <div class="info-card">
+                        <h5><i class="fas fa-eye"></i> Ethical (7.1)</h5>
+                        <ul>
+                            <li><strong>Transparency & Interpretability:</strong> Selected Decision Tree to avoid "black-box" models. Explains exactly *why* a risk is high.</li>
+                            <li><strong>Fairness:</strong> Must ensure system does not unfairly bias against peripheral neighborhoods lacking sensors compared to central areas.</li>
+                        </ul>
+                    </div>
+                    <div class="info-card">
+                        <h5><i class="fas fa-file-contract"></i> Legal (7.2)</h5>
+                        <ul>
+                            <li><strong>Data Protection:</strong> Strict compliance with Saudi PDPL ensuring complete anonymization of demographic data.</li>
+                            <li><strong>Liability & Disclaimer:</strong> System is a DSS. Development team bears <span class="highlight">no legal responsibility</span> for urban planning decisions. AI provides probabilistic indicators, not facts.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-box">
+                <span class="report-tag">REPORT PHASE 1 | SECTIONS 7.3, 7.4, 7.5</span>
+                <h2 class="slide-title"><i class="fas fa-globe"></i> Societal, Assumptions & Constraints</h2>
+                <div class="grid-2">
+                    <div class="info-card">
+                        <h5><i class="fas fa-city"></i> Societal (7.3) & Assumptions (7.4)</h5>
+                        <ul>
+                            <li><strong>Real Estate:</strong> Labeling areas "hazardous" could induce panic and affect rental prices. Outputs are for policymakers only.</li>
+                            <li><strong>Quality of Life:</strong> Positively enables resource allocation to affected areas.</li>
+                            <li><strong>Assumptions:</strong> Data is accurate/up-to-date; primary patterns are known with no unrecorded disasters.</li>
+                        </ul>
+                    </div>
+                    <div class="info-card">
+                        <h5><i class="fas fa-link"></i> Constraints (7.5)</h5>
+                        <ul>
+                            <li><strong>Seasonality:</strong> Makkah's unique surges (Hajj/Umrah) make it hard to distinguish permanent vs. temporary baseline pollution.</li>
+                            <li><strong>Missing Data:</strong> Difficult to acquire dense data for every single neighborhood, limiting accuracy in under-monitored areas.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-box">
+                <span class="report-tag">REPORT PHASE 1 | SECTIONS 8.1 - 8.4</span>
+                <h2 class="slide-title"><i class="fas fa-users-cog"></i> UCD, XAI & Governance</h2>
+                <div class="grid-2">
+                    <div class="info-card">
+                        <h5><i class="fas fa-sync"></i> Mutual Benefit & XAI (8.1, 8.2)</h5>
+                        <ul>
+                            <li><strong>Benefit Loop:</strong> Providers (Gov/households) supply raw data &rarr; Receivers (Authorities) get structured insights.</li>
+                            <li><strong>XAI:</strong> Decision tree chosen for transparency. Authorities can trace if risk is permanent (waste) or temporary (Hajj).</li>
+                        </ul>
+                    </div>
+                    <div class="info-card">
+                        <h5><i class="fas fa-shield-check"></i> Ethical AI & Governance (8.3, 8.4)</h5>
+                        <ul>
+                            <li><strong>Fairness & Objective Analysis:</strong> Thresholds documented consistently. Grounded in data, minimizing human bias.</li>
+                            <li><strong>Privacy Compliance:</strong> PDPL adherence via aggregated stats.</li>
+                            <li><strong>Actionable Insights:</strong> Functions as a DSS supporting, not replacing, human expertise.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-box">
+                <span class="report-tag">REPORT PHASE 2 | IDENTIFICATION & JUSTIFICATION</span>
+                <h2 class="slide-title"><i class="fas fa-database"></i> Full Data Source Justification</h2>
+                <div class="grid-2">
+                    <div class="info-card">
+                        <h5>DataSaudi & GASTAT</h5>
+                        <ul>
+                            <li><strong>Credibility & Trust:</strong> Since it's a DSS, we cannot use scraped/unofficial data. We need verified government platforms trusted by policymakers.</li>
+                            <li><strong>Targeted Relevance:</strong> IoT sensors aren't uniform in Makkah. DataSaudi provides actual household exposure % for 2024 (Dust 13.3%, Smoke 7.6%, etc.).</li>
+                        </ul>
+                    </div>
+                    <div class="info-card">
+                        <h5>Algorithm & Privacy Fit</h5>
+                        <ul>
+                            <li><strong>Algorithmic Fit:</strong> Limited temporal coverage suits our cross-sectional Decision Tree, rather than complex time-series.</li>
+                            <li><strong>Zero Privacy Risks:</strong> Data is already aggregated and anonymized. No PII is handled, ensuring immediate PDPL compliance.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-box">
+                <span class="report-tag">REPORT PHASE 2 | COLLECTION & CLEANING</span>
+                <h2 class="slide-title"><i class="fas fa-broom"></i> Collection & All Cleaning Steps</h2>
+                <div class="grid-2">
+                    <div class="info-card">
+                        <h5><i class="fas fa-download"></i> Collection Steps</h5>
+                        <ol>
+                            <li>Access Household Environment Stats and filter for Makkah.</li>
+                            <li>Download 2024 dataset in CSV to prevent transcription errors.</li>
+                            <li>Load into pandas DataFrame.</li>
+                        </ol>
+                    </div>
+                    <div class="info-card">
+                        <h5><i class="fas fa-filter"></i> 3 Cleaning Areas</h5>
+                        <ul>
+                            <li><strong>Missing Values:</strong> Conditional imputation. Regional median for critical (dust), zero for less prevalent, with logging.</li>
+                            <li><strong>Format:</strong> Normalize to decimal (13.3% &rarr; 0.133), lowercase column names.</li>
+                            <li><strong>Outliers:</strong> Validate 0-100% range. Generate data quality report.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-box">
+                <span class="report-tag">REPORT PHASE 2 | SYSTEM ARCHITECTURE</span>
+                <h2 class="slide-title"><i class="fas fa-sitemap"></i> Logical System Architecture</h2>
+                <div class="info-card">
+                    <h5><i class="fas fa-project-diagram"></i> Workflow & Components</h5>
+                    <p style="text-align: center; font-weight:bold; color:var(--uqu-gold);">User &rarr; Data Source &rarr; Data Preprocessing &rarr; Classification Model &rarr; Output & Visualization</p>
+                    <hr style="border:0; border-top:1px dashed #ccc; margin: 15px 0;">
+                    <ul>
+                        <li><strong>Frontend (User Interface):</strong> Provides a simple interface for users to input data and view results.</li>
+                        <li><strong>Backend (Processing Layer):</strong> Handles data processing, including cleaning and preparing data for analysis.</li>
+                        <li><strong>Database (Storage):</strong> Stores pollution datasets and processed data.</li>
+                        <li><strong>ML Model:</strong> Decision Tree responsible for classifying risk levels and ranking.</li>
+                        <li><strong>Results & Visualization:</strong> Charts/tables making data easy for non-technical users.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-box">
+                <span class="report-tag">REPORT PHASE 2 | SYSTEM ATTRIBUTES</span>
+                <h2 class="slide-title"><i class="fas fa-server"></i> Scalability, Fault-Tolerance & Security</h2>
+                <div class="grid-2">
+                    <div class="info-card">
+                        <h5><i class="fas fa-expand"></i> Scalability & Reliability</h5>
+                        <ul>
+                            <li><strong>Scalability:</strong> Highly modular. Python/pandas pipeline is not hardcoded to Makkah. Can scale to Riyadh/Jeddah without rewrite.</li>
+                            <li><strong>Reliability:</strong> Deterministic model. Same inputs yield same results, improving trust for policymakers.</li>
+                        </ul>
+                    </div>
+                    <div class="info-card">
+                        <h5><i class="fas fa-shield-virus"></i> Fault-Tolerance & Security</h5>
+                        <ul>
+                            <li><strong>Fault-Tolerance:</strong> try-except blocks. Missing values log a warning, impute averages, and continue without crashing.</li>
+                            <li><strong>Security:</strong> PDPL compliance (anonymized data). Hosted locally or on internal gov infra to reduce cyber threats.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-box">
+                <span class="report-tag">REPORT PHASE 2 | BASELINE & METRICS</span>
+                <h2 class="slide-title"><i class="fas fa-tree"></i> Baseline Choice & All Metrics</h2>
+                <div class="grid-2">
+                    <div class="info-card">
+                        <h5><i class="fas fa-check"></i> Baseline: Decision Tree</h5>
+                        <ul>
+                            <li>Simple, understandable, and highly interpretable. Avoids "black-box" scenarios for government use.</li>
+                            <li>Well-suited for small, structured datasets (numerical %). Uses simple threshold rules.</li>
+                        </ul>
+                    </div>
+                    <div class="info-card">
+                        <h5><i class="fas fa-chart-pie"></i> Evaluation Metrics</h5>
+                        <ul>
+                            <li><strong>Accuracy:</strong> Overall correct classification.</li>
+                            <li><strong>Precision/Recall & F1:</strong> Vital for critical high-risk cases.</li>
+                            <li><strong>Ranking Effectiveness:</strong> Ensures higher % (e.g., 13.3% dust) are prioritized over lower ones.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-box">
+                <span class="report-tag">REPORT PHASE 2 | EXPERIMENTATION</span>
+                <h2 class="slide-title"><i class="fas fa-flask"></i> Complete Iterative Plan</h2>
+                <div class="info-card">
+                    <h5><i class="fas fa-sync-alt"></i> The 3 Phases & Documentation</h5>
+                    <ul>
+                        <li><strong>Iteration 1 (Tuning):</strong> Optimize max_depth, min_samples_split, criterion. Target: <span class="highlight">&ge; 2% F1-score improvement</span> using cross-validation.</li>
+                        <li><strong>Iteration 2 (Feature Engineering):</strong> Introduce "Total pollution load" and "Dominant pollution type". Target: <span class="highlight">&ge; 1% improvement</span>, otherwise discard to maintain simplicity.</li>
+                        <li><strong>Iteration 3 (Alternative Models):</strong> Benchmark against Random Forest and Logistic Regression. Target: <span class="highlight">&ge; 5% Accuracy/F1 jump</span> to adopt over transparency.</li>
+                        <li><strong>Documentation:</strong> Log modification, hypothesis, baseline vs updated metrics, and final decision.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="content-box animate__animated animate__heartBeat" style="text-align: center; justify-content: center; border: 3px dashed var(--uqu-gold); background: #fff;">
+                <h1 style="font-size: 5rem; color: var(--uqu-green); font-family: 'Poppins'; margin: 0;">Thank You!</h1>
+                <p style="font-size: 1.5rem; color: var(--uqu-gold); font-weight: 600;">Any Questions or Feedback?</p>
+                <div style="margin-top: 30px; font-weight: 800; color: var(--uqu-green);">
+                    <span><i class="fas fa-university"></i> Umm Al-Qura University 2026</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const progressLine = document.getElementById('progressLine');
+        const slideNum = document.getElementById('slideNum');
+
+        function updateSlider() {
+            slides.forEach((s, i) => {
+                s.classList.remove('active');
+                if(i === currentSlide) s.classList.add('active');
+            });
+            progressLine.style.width = `${((currentSlide + 1) / slides.length) * 100}%`;
+            slideNum.innerText = `Slide ${currentSlide + 1} / ${slides.length}`;
+        }
+
+        function moveSlide(dir) {
+            currentSlide = (currentSlide + dir + slides.length) % slides.length;
+            updateSlider();
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if(e.key === 'ArrowRight') moveSlide(1);
+            if(e.key === 'ArrowLeft') moveSlide(-1);
+        });
+
+        window.onload = updateSlider;
+    </script>
+</body>
+</html>
