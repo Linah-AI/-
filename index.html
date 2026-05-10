@@ -109,9 +109,9 @@
                 <h1 class="animate__animated animate__fadeInDown animate__delay-1s" style="font-size: 3.5rem; color: var(--uqu-green); font-family: 'Poppins'; margin: 0; line-height: 1.2;">Classifying Air Pollution <br><span style="color: var(--uqu-gold);">Risk Levels</span> in Makkah</h1>
                 <p class="animate__animated animate__fadeIn animate__delay-2s" style="font-size: 1.2rem; max-width: 800px; margin: 25px auto; color: #475569;">A Comprehensive <strong>Explainable AI (XAI)</strong> framework to support decision-making and improve <span class="highlight">urban quality of life</span>.</p>
                 <div class="animate__animated animate__fadeInUp animate__delay-2s" style="display: flex; gap: 15px; justify-content: center; margin-top: 20px; flex-wrap: wrap;">
-                    <span class="info-card" style="padding:10px 20px; font-weight:800; font-size:0.9rem;">Salam Alghamdi (Leader)</span>
+                    <span class="info-card" style="padding:10px 20px; font-weight:800; font-size:0.9rem;">Linah Alsayed(Leader)</span>
                     <span class="info-card" style="padding:10px 20px; font-weight:800; font-size:0.9rem;">Danah Alharbi</span>
-                    <span class="info-card" style="padding:10px 20px; font-weight:800; font-size:0.9rem;">Linah Alsayed</span>
+                    <span class="info-card" style="padding:10px 20px; font-weight:800; font-size:0.9rem;">Salam Alghamdi</span>
                     <span class="info-card" style="padding:10px 20px; font-weight:800; font-size:0.9rem;">Khadija Mirza</span>
                 </div>
             </div>
@@ -375,7 +375,8 @@
                     <div class="info-card">
                         <h5><i class="fas fa-filter"></i> 3 Cleaning Areas</h5>
                         <ul>
-                            <li><strong>Missing Values:</strong> Conditional imputation. Regional median for critical (dust), zero for less prevalent, with logging.</li>
+                            <li><strong>Missing Values:</strong> Given the small size and highly verified nature of the dataset, applying imputation could introduce bias. Therefore, we use listwise deletion (<code>dropna()</code>) to ensure the model learns only from 100% authentic records.</li>
+
                             <li><strong>Format:</strong> Normalize to decimal (13.3% &rarr; 0.133), lowercase column names.</li>
                             <li><strong>Outliers:</strong> Validate 0-100% range. Generate data quality report.</li>
                         </ul>
@@ -390,15 +391,14 @@
                 <h2 class="slide-title"><i class="fas fa-sitemap"></i> Logical System Architecture</h2>
                 <div class="info-card">
                     <h5><i class="fas fa-project-diagram"></i> Workflow & Components</h5>
-                    <p style="text-align: center; font-weight:bold; color:var(--uqu-gold);">User &rarr; Data Source &rarr; Data Preprocessing &rarr; Classification Model &rarr; Output & Visualization</p>
-                    <hr style="border:0; border-top:1px dashed #ccc; margin: 15px 0;">
-                    <ul>
-                        <li><strong>Frontend (User Interface):</strong> Provides a simple interface for users to input data and view results.</li>
-                        <li><strong>Backend (Processing Layer):</strong> Handles data processing, including cleaning and preparing data for analysis.</li>
-                        <li><strong>Database (Storage):</strong> Stores pollution datasets and processed data.</li>
-                        <li><strong>ML Model:</strong> Decision Tree responsible for classifying risk levels and ranking.</li>
-                        <li><strong>Results & Visualization:</strong> Charts/tables making data easy for non-technical users.</li>
-                    </ul>
+                    <p style="text-align: center; font-weight:bold; color:var(--uqu-gold);">Local Storage (Excel) &rarr; Processing Layer (CLI) &rarr; ML Model (Decision Tree) &rarr; Results</p>
+<hr style="border:0; border-top:1px dashed #ccc; margin: 15px 0;">
+<ul>
+    <li><strong>Command-Line Interface (CLI):</strong> Provides a simple, lightweight environment for execution.</li>
+    <li><strong>Data Processing Layer:</strong> Handles cleaning and preparing data directly from local Excel files, eliminating the need for a complex database.</li>
+    <li><strong>ML Model (Decision Tree):</strong> Responsible for analyzing features and classifying risk levels into distinct categories.</li>
+    <li><strong>Results & Visualization:</strong> Outputs confusion matrices, classification reports, and tree visualizations directly to the user.</li>
+</ul>
                 </div>
             </div>
         </div>
@@ -418,7 +418,7 @@
                     <div class="info-card">
                         <h5><i class="fas fa-shield-virus"></i> Fault-Tolerance & Security</h5>
                         <ul>
-                            <li><strong>Fault-Tolerance:</strong> try-except blocks. Missing values log a warning, impute averages, and continue without crashing.</li>
+                            <li><strong>Fault-Tolerance:</strong> Python try-except blocks are utilized. The pipeline catches data loading errors, drops invalid rows smoothly, and continues execution without crashing the main application.</li>
                             <li><strong>Security:</strong> PDPL compliance (anonymized data). Hosted locally or on internal gov infra to reduce cyber threats.</li>
                         </ul>
                     </div>
@@ -443,7 +443,7 @@
                         <ul>
                             <li><strong>Accuracy:</strong> Overall correct classification.</li>
                             <li><strong>Precision/Recall & F1:</strong> Vital for critical high-risk cases.</li>
-                            <li><strong>Ranking Effectiveness:</strong> Ensures higher % (e.g., 13.3% dust) are prioritized over lower ones.</li>
+                            <li><strong>Risk Classification Logic:</strong> Because our system focuses on classifying risk levels rather than ranking, we ensure the model correctly categorizes severe pollution into the "High" risk class without false negatives.</li>
                         </ul>
                     </div>
                 </div>
@@ -457,11 +457,10 @@
                 <div class="info-card">
                     <h5><i class="fas fa-sync-alt"></i> The 3 Phases & Documentation</h5>
                     <ul>
-                        <li><strong>Iteration 1 (Tuning):</strong> Optimize max_depth, min_samples_split, criterion. Target: <span class="highlight">&ge; 2% F1-score improvement</span> using cross-validation.</li>
-                        <li><strong>Iteration 2 (Feature Engineering):</strong> Introduce "Total pollution load" and "Dominant pollution type". Target: <span class="highlight">&ge; 1% improvement</span>, otherwise discard to maintain simplicity.</li>
-                        <li><strong>Iteration 3 (Alternative Models):</strong> Benchmark against Random Forest and Logistic Regression. Target: <span class="highlight">&ge; 5% Accuracy/F1 jump</span> to adopt over transparency.</li>
-                        <li><strong>Documentation:</strong> Log modification, hypothesis, baseline vs updated metrics, and final decision.</li>
-                    </ul>
+    <li><strong>Iteration 1 (Baseline & Features):</strong> Transform continuous percentages into categorical risk labels (Low, Medium, High). Train a baseline Decision Tree to extract initial logical rules.</li>
+    <li><strong>Iteration 2 (LOOCV Implementation):</strong> Instead of a standard train/test split, we implement the <strong>Leave-One-Out Cross-Validation (LOOCV)</strong> algorithm. This is the most mathematically rigorous approach for small datasets to prevent overfitting.</li>
+    <li><strong>Iteration 3 (Metric Optimization):</strong> Refine the evaluation pipeline to handle zero-division edge cases, ensuring balanced performance metrics across all risk categories without artificial data inflation (e.g., SMOTE).</li>
+                   </ul>
                 </div>
             </div>
         </div>
